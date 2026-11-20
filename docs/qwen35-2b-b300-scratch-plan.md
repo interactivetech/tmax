@@ -221,3 +221,9 @@ on the B300. The first model test revealed two test/configuration issues:
 - Select `TRITON_ATTN` for vLLM in both the checker and local launcher. The
   default FlashInfer backend's decode JIT requests `compute_103a`, which the
   installed CUDA 12.8 compiler rejects. Gated DeltaNet prefill remains Triton.
+
+The complete GPU preflight **passed in job 8489821 on 2026-11-20 at 14:10 EST**:
+Torch/causal convolution/FA4 micro-kernel checks, SDPA model forward and backward
+(finite loss 7.0571), and 16-token vLLM generation using Triton attention. The
+checker created `logs/gpu-preflight.passed` and its engine shut down normally.
+The next manual step is `launch_scratch_2b.sh`; RL training itself has not yet run.
