@@ -32,6 +32,37 @@ from parameterized import parameterized
 from open_instruct import data_types, launch_utils, utils
 
 
+class TestWandbEntity(unittest.TestCase):
+    def tearDown(self):
+        utils._lookup_ai2_wandb_entity.__wrapped__.cache_clear()
+
+    def test_offline_tracking_does_not_require_login_or_team_lookup(self):
+        for mode in ("offline", "dryrun", "disabled", " OFFLINE "):
+            with (
+                self.subTest(mode=mode),
+                mock.patch.dict(os.environ, {"WANDB_MODE": mode}),
+                mock.patch.object(utils.wandb, "login") as login,
+                mock.patch.object(utils.wandb, "Api") as api,
+            ):
+                self.assertIsNone(utils.maybe_use_ai2_wandb_entity())
+                login.assert_not_called()
+                api.assert_not_called()
+
+    def test_offline_result_does_not_disable_later_online_lookup(self):
+        with mock.patch.dict(os.environ, {"WANDB_MODE": "offline"}):
+            self.assertIsNone(utils.maybe_use_ai2_wandb_entity())
+        with (
+            mock.patch.dict(os.environ, {"WANDB_MODE": "online"}),
+            mock.patch.object(utils.wandb, "login") as login,
+            mock.patch.object(utils.wandb, "Api") as api,
+        ):
+            api.return_value.viewer.teams = ["ai2-llm"]
+            self.assertEqual(utils.maybe_use_ai2_wandb_entity(), "ai2-llm")
+            self.assertEqual(utils.maybe_use_ai2_wandb_entity(), "ai2-llm")
+            login.assert_called_once()
+            api.assert_called_once()
+
+
 def _load_mbu_test_cases():
     test_data_path = pathlib.Path(__file__).parent / "test_data" / "mbu_reproduction_cases.json"
     with open(test_data_path) as f:

@@ -1339,10 +1339,17 @@ def retry_on_exception(max_attempts=4, delay=1, backoff=2):
     return decorator
 
 
-@retry_on_exception()
-@functools.lru_cache(maxsize=1)
 def maybe_use_ai2_wandb_entity() -> str | None:
     """Ai2 internal logic: try use the ai2-llm team if possible. Should not affect external users."""
+    if os.environ.get("WANDB_MODE", "").strip().lower() in {"offline", "dryrun", "disabled"}:
+        return None
+    return _lookup_ai2_wandb_entity()
+
+
+@retry_on_exception()
+@functools.lru_cache(maxsize=1)
+def _lookup_ai2_wandb_entity() -> str | None:
+    """Cache the authenticated team lookup only when online tracking is enabled."""
     wandb.login()
     api = wandb.Api()
     current_user = api.viewer
