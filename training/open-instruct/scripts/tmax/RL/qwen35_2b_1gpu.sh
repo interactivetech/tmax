@@ -47,16 +47,16 @@ uv run python open_instruct/grpo_fast.py \
     --dataset_local_cache_dir "${DATASET_LOCAL_CACHE_DIR:-local_dataset_cache}" \
     --max_prompt_token_length 2048 \
     --per_turn_max_tokens 4096 \
-    --response_length 8192 \
-    --pack_length 10240 \
+    --response_length "${RESPONSE_LENGTH:-8192}" \
+    --pack_length "${PACK_LENGTH:-10240}" \
     --per_device_train_batch_size 1 \
     --num_unique_prompts_rollout 1 \
     --num_samples_per_prompt_rollout 8 \
     --async_steps "$ASYNC_STEPS" \
-    --model_name_or_path hamishivi/Qwen3.5-2B \
+    --model_name_or_path "${MODEL_NAME_OR_PATH:-hamishivi/Qwen3.5-2B}" \
     --temperature 1.0 \
     --learning_rate 1e-6 \
-    --total_episodes 24 \
+    --total_episodes "${TOTAL_EPISODES:-24}" \
     --lr_scheduler_type constant \
     --deepspeed_stage 3 \
     --num_epochs 1 \

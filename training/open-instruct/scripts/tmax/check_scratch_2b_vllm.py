@@ -1,13 +1,15 @@
 """Run the vLLM GPU smoke test from a spawn-safe Python entry point."""
 
+import os
+
 from vllm import LLM, SamplingParams
 
 
 def main() -> None:
     llm = LLM(
-        model="hamishivi/Qwen3.5-2B",
+        model=os.environ.get("MODEL_NAME_OR_PATH", "hamishivi/Qwen3.5-2B"),
         tensor_parallel_size=1,
-        max_model_len=10240,
+        max_model_len=int(os.environ.get("PACK_LENGTH", "10240")),
         gpu_memory_utilization=0.3,
         enforce_eager=True,
         seed=42,

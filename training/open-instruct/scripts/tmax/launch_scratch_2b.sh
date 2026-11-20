@@ -25,14 +25,14 @@ import json
 import os
 from pathlib import Path
 
-path = Path(os.environ["TMAX_SCRATCH_ROOT"]) / "logs/debug-task-manifest.json"
+path = Path(os.environ["TMAX_SCRATCH_ROOT"]) / f"logs/{os.environ.get('TMAX_VALIDATION_PREFIX', 'qwen35-2b')}-task-manifest.json"
 if not path.exists() or not json.loads(path.read_text()).get("passed"):
     raise SystemExit("Run prepare_scratch_2b.py and pass its task sandbox checks before training.")
 if os.environ.get("DATASET", "TMaxxx/tmax-13k-v1.1") != json.loads(path.read_text())["dataset"]:
     raise SystemExit("Dataset changed since task preparation; rerun prepare_scratch_2b.py.")
 PY
 export UV_FROZEN=true
-if [[ ! -f "$TMAX_SCRATCH_ROOT/logs/gpu-preflight.passed" ]]; then
+if [[ ! -f "$TMAX_SCRATCH_ROOT/logs/${TMAX_VALIDATION_PREFIX:-qwen35-2b}-gpu-preflight.passed" ]]; then
     echo "Run check_scratch_2b_gpu.sh and pass GPU validation before training." >&2
     exit 1
 fi
@@ -48,7 +48,7 @@ export RAY_DEDUP_LOGS=0
 # Force a separate Ray instance; never connect to or stop an existing workload.
 export RAY_ADDRESS=local
 export RAY_OVERRIDE_RESOURCES="{\"CPU\":${SLURM_CPUS_ON_NODE:-16},\"GPU\":1}"
-export OUTPUT_DIR="$TMAX_SCRATCH_ROOT/runs/qwen35-2b-$(date -u +%Y%m%dT%H%M%SZ)"
+export OUTPUT_DIR="$TMAX_SCRATCH_ROOT/runs/${RUN_PREFIX:-qwen35-2b}-$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "$OUTPUT_DIR"
 git rev-parse HEAD > "$OUTPUT_DIR/git-commit.txt"
 uv pip freeze --python "$UV_PROJECT_ENVIRONMENT/bin/python" > "$OUTPUT_DIR/packages.txt"

@@ -268,3 +268,33 @@ instance names recorded in its own training log and preserves the training exit
 status. Three focused cleanup tests passed, including leaving another run's
 instance untouched. After cleanup there were no remaining task instances or GPU
 processes from this run; `cleanup.log` and `sandbox-starts.log` retain the evidence.
+
+## Qwen3.5-4B diagnostic profile
+
+Source `scripts/tmax/qwen35_4b_scratch_env.sh` from `training/open-instruct`
+ before each preparation, GPU preflight, and launch command. This selects
+`hamishivi/Qwen3.5-4B`, response length 16384, pack length 18432, and 24
+ episodes. It retains eight samples per prompt, synchronous collection,
+SDPA learner attention, Triton vLLM attention, and the single B300 topology.
+Preparation manifests and GPU success markers are separate from the 2B profile.
+Existing shared dependencies and model/task caches remain on scratch.
+
+The upstream `RL/qwen35_4b.sh` is a 32-GPU Beaker recipe; this profile is a
+single-GPU diagnostic adaptation, not a reproduction of that full experiment.
+Before launching, investigate the observed `/home/user` permission failures,
+working-directory differences, malformed tool calls, and the discrepancy between
+trainer truncation metrics and saved rollout finish reasons. More tokens and a
+larger model do not establish that these sandbox issues are resolved.
+
+```bash
+source scripts/tmax/qwen35_4b_scratch_env.sh
+CUDA_VISIBLE_DEVICES='' uv run --frozen --no-sync python scripts/tmax/prepare_scratch_2b.py
+bash scripts/tmax/check_scratch_2b_gpu.sh
+# Launch only after task filesystem/submission checks are resolved:
+bash scripts/tmax/launch_scratch_2b.sh
+```
+
+The generic implementation retains historical `2b` filenames. The environment
+profile selects the model and budget. GPU preflight currently checks short learner
+forward/backward and vLLM allocation at the requested context capacity; it does
+not prove a full-length 4B learner batch fits.

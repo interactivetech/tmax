@@ -22,7 +22,7 @@ from open_instruct.environments.swerl_sandbox import SUBMIT_MARKER
 from open_instruct.environments.swerl_vanillux_sandbox import SWERLVanilluxSandboxEnv
 
 logger = logger_utils.setup_logger(__name__)
-MODEL = "hamishivi/Qwen3.5-2B"
+MODEL = os.environ.get("MODEL_NAME_OR_PATH", "hamishivi/Qwen3.5-2B")
 ENV_NAME = "swerl_vanillux_sandbox"
 
 
@@ -46,7 +46,7 @@ async def smoke_task(task: dict, task_data: str) -> dict:
 
 def main() -> None:
     root = Path(os.environ["TMAX_SCRATCH_ROOT"])
-    manifest_path = root / "logs/debug-task-manifest.json"
+    manifest_path = root / f"logs/{os.environ.get('TMAX_VALIDATION_PREFIX', 'qwen35-2b')}-task-manifest.json"
     manifest = {"model": MODEL, "dataset": os.environ.get("DATASET", "TMaxxx/tmax-13k-v1.1"), "seed": 42, "tasks": []}
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
     model_snapshot = snapshot_download(MODEL, max_workers=4)

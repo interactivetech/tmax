@@ -10,7 +10,7 @@ if [[ -n "$(nvidia-smi --query-compute-apps=pid --format=csv,noheader,nounits)" 
     echo "The GPU has an existing compute workload. Leaving it running; checks deferred." >&2
     exit 1
 fi
-marker="$TMAX_SCRATCH_ROOT/logs/gpu-preflight.passed"
+marker="$TMAX_SCRATCH_ROOT/logs/${TMAX_VALIDATION_PREFIX:-qwen35-2b}-gpu-preflight.passed"
 rm -f "$marker"
 exec > >(tee "$TMAX_SCRATCH_ROOT/logs/gpu-preflight.log") 2>&1
 uv run --frozen --no-sync python - <<'PY'
@@ -41,15 +41,16 @@ torch.cuda.synchronize()
 print("Torch, causal convolution and Flash Attention 4 forward/backward passed")
 PY
 uv run --frozen --no-sync python - <<'PY'
+import os
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from open_instruct.qwen3_5_packing_patch import patch_qwen3_5_packing
 
 patch_qwen3_5_packing()
-tokenizer = AutoTokenizer.from_pretrained("hamishivi/Qwen3.5-2B", local_files_only=True)
+tokenizer = AutoTokenizer.from_pretrained(os.environ.get("MODEL_NAME_OR_PATH", "hamishivi/Qwen3.5-2B"), local_files_only=True)
 model = AutoModelForCausalLM.from_pretrained(
-    "hamishivi/Qwen3.5-2B", local_files_only=True, dtype=torch.bfloat16,
+    os.environ.get("MODEL_NAME_OR_PATH", "hamishivi/Qwen3.5-2B"), local_files_only=True, dtype=torch.bfloat16,
     # The pinned FA4 wheel does not support Qwen3.5's head_dim=256 on Blackwell.
     device_map={"": 0}, attn_implementation="sdpa",
 )
