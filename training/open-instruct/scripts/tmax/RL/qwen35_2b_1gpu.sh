@@ -76,6 +76,7 @@ uv run python open_instruct/grpo_fast.py \
     --vllm_enable_prefix_caching \
     --push_to_hub false \
     --with_tracking \
+    --wandb_project "${WANDB_PROJECT:-open_instruct_internal}" \
     --save_traces \
     --rollouts_save_path "${ROLLOUTS_SAVE_PATH:-$OUTPUT_DIR/rollouts}" \
     --save_trainer_logprobs false \
