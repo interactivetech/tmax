@@ -58,7 +58,11 @@ The installer refuses a dirty checkout, installs uv 0.13.9 in unmanaged mode,
 installs managed Python 3.12, and runs `uv sync --frozen --python 3.12 --extra code`
 from `training/open-instruct/`. Default development dependencies are included
 for Ruff and focused tests. Preserve Torch 2.10.0+cu128, vLLM 0.19.1,
-Transformers 5.4.0 and the checked-in attention wheel sources. Do not silently
+the checked-in attention wheel sources. The original lock selected Transformers
+5.4.0 through an override, but vLLM 0.19.1 explicitly excludes 5.4.x and 5.5.0.
+Raise the project minimum to 5.5.1, remove that override so vLLM's constraints
+are honored, and lock Transformers 5.5.1 before re-running installation.
+Keep Torch and vLLM unchanged. Do not silently
 update the lockfile or substitute versions following an error. Logs and a
 package inventory are stored under scratch.
 
