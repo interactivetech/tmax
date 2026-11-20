@@ -1797,6 +1797,9 @@ def check_runtime_leaks(
 GPU_SPECS = {
     "a100": {"flops": 312e12, "memory_size": 80e9, "memory_bandwidth": 2.0e12},  # 2.0 TB/s HBM2e (80GB variant)
     "b200": {"flops": 2250e12, "memory_size": 192e9, "memory_bandwidth": 8e12},  # 8 TB/s HBM3e
+    # HGX B300: BF16 dense is half the sparse figure in NVIDIA's Blackwell Ultra datasheet.
+    # https://resources.nvidia.com/en-us-blackwell-architecture/blackwell-ultra-datasheet
+    "b300": {"flops": 2250e12, "memory_size": 270e9, "memory_bandwidth": 7.7e12},
     "h100": {"flops": 990e12, "memory_size": 80e9, "memory_bandwidth": 3.35e12},  # 3.35 TB/s HBM3
     "h200": {"flops": 989e12, "memory_size": 141e9, "memory_bandwidth": 4.8e12},  # 4.8 TB/s HBM3e
     "a6000": {"flops": 155e12, "memory_size": 48e9, "memory_bandwidth": 768e9},  # 768 GB/s GDDR6
