@@ -20,6 +20,17 @@ if ! compgen -G "$SWERL_APPTAINER_SIF_DIR/*.sif" >/dev/null; then
     echo "Prepare task SIF images and validate task execution before training." >&2
     exit 1
 fi
+"$UV_PROJECT_ENVIRONMENT/bin/python" - <<'PY'
+import json
+import os
+from pathlib import Path
+
+path = Path(os.environ["TMAX_SCRATCH_ROOT"]) / "logs/debug-task-manifest.json"
+if not path.exists() or not json.loads(path.read_text()).get("passed"):
+    raise SystemExit("Run prepare_scratch_2b.py and pass its task sandbox checks before training.")
+if os.environ.get("DATASET", "TMaxxx/tmax-13k-v1.1") != json.loads(path.read_text())["dataset"]:
+    raise SystemExit("Dataset changed since task preparation; rerun prepare_scratch_2b.py.")
+PY
 export UV_FROZEN=true
 export UV_NO_SYNC=true
 export SANDBOX_BACKEND=apptainer

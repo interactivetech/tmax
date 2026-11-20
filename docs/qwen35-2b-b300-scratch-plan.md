@@ -97,6 +97,18 @@ uv pip check --python "$UV_PROJECT_ENVIRONMENT/bin/python"
    verify Apptainer fakeroot fallback with the backend's actual instance flags.
    Image availability and successful fakeroot execution are prerequisites for RL.
 
+Steps 3–5 are implemented by the CPU-only preparation helper (run after sourcing
+the environment and changing to `training/open-instruct`):
+
+```bash
+CUDA_VISIBLE_DEVICES='' uv run --frozen --no-sync python scripts/tmax/prepare_scratch_2b.py
+```
+
+It downloads the model to scratch, reuses the trainer's tokenization and loader,
+pulls only the three selected task images, and records checksums and real verifier
+results in `logs/debug-task-manifest.json`. The local launcher requires this
+manifest to show a successful preparation.
+
 ## GPU validation and launch
 
 Wait for the existing GPU workload to finish; do not kill it or stop its Ray
