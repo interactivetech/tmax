@@ -38,6 +38,8 @@ if [[ ! -f "$TMAX_SCRATCH_ROOT/logs/gpu-preflight.passed" ]]; then
 fi
 export UV_NO_SYNC=true
 export SANDBOX_BACKEND=apptainer
+# The pinned Flash Attention 4 wheel rejects Qwen3.5's head_dim=256 on B300.
+export ATTN_IMPLEMENTATION=torch
 export OPEN_INSTRUCT_RAY_RUNTIME_ENV=full
 # Force a separate Ray instance; never connect to or stop an existing workload.
 export RAY_ADDRESS=local

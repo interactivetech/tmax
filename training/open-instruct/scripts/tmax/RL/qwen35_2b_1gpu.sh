@@ -10,6 +10,10 @@ VLLM_SEED_PER_TURN="${VLLM_SEED_PER_TURN:-true}"
 DATASET="${DATASET:-TMaxxx/tmax-13k-v1.1}"
 SANDBOX_BACKEND="${SANDBOX_BACKEND:-docker}"
 OUTPUT_DIR="${OUTPUT_DIR:-output/qwen35_2b_dppo_1gpu}"
+attention_args=()
+if [[ -n "${ATTN_IMPLEMENTATION:-}" ]]; then
+    attention_args=(--attn_implementation "$ATTN_IMPLEMENTATION")
+fi
 # TOOL_CONFIGS can override the complete environment config, including local task data.
 if [ -z "${TOOL_CONFIGS:-}" ]; then
     TOOL_CONFIGS="$(uv run python - "$DATASET" "$SANDBOX_BACKEND" <<'PYCONFIG'
@@ -34,6 +38,7 @@ export SWERL_SANDBOX_TIMING_LOG_THRESHOLD_S=1.0
 
 # Use an existing Docker/Podman service, or a configured remote backend.
 uv run python open_instruct/grpo_fast.py \
+    "${attention_args[@]}" \
     --dataset_mixer_list "$DATASET" 1.0 \
     --dataset_mixer_list_splits train \
     --dataset_local_cache_dir "${DATASET_LOCAL_CACHE_DIR:-local_dataset_cache}" \

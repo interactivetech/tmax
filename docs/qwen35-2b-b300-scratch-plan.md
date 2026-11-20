@@ -203,3 +203,16 @@ bash training/open-instruct/scripts/tmax/launch_scratch_2b.sh
 
 The first command must pass before the second launches training. GPU compatibility
 and completed training are not claimed by the installation/CPU results above.
+
+### GPU preflight corrections in job 8489821
+
+The low-level Torch, causal convolution and FA4 head-dimension-128 checks passed
+on the B300. The first model test revealed two test/configuration issues:
+
+- Disable generation caches for the model check, matching the learner's
+  `use_cache=False`. The packing patch does not implement Transformers 5.5's
+  DynamicCache API.
+- Use SDPA for the local learner and model test: the pinned FA4 wheel rejects
+  Qwen3.5's head dimension 256 on Blackwell, although its smaller kernel check
+  passes. The local wrapper sets `ATTN_IMPLEMENTATION=torch`, which the trainer
+  maps to Hugging Face `sdpa`; other invocations retain their existing default.

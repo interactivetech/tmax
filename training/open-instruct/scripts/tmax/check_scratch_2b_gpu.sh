@@ -44,14 +44,14 @@ uv run --frozen --no-sync python - <<'PY'
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from open_instruct import model_utils
 from open_instruct.qwen3_5_packing_patch import patch_qwen3_5_packing
 
 patch_qwen3_5_packing()
 tokenizer = AutoTokenizer.from_pretrained("hamishivi/Qwen3.5-2B", local_files_only=True)
 model = AutoModelForCausalLM.from_pretrained(
     "hamishivi/Qwen3.5-2B", local_files_only=True, dtype=torch.bfloat16,
-    device_map={"": 0}, attn_implementation=model_utils.detect_hf_attn_implementation(),
+    # The pinned FA4 wheel does not support Qwen3.5's head_dim=256 on Blackwell.
+    device_map={"": 0}, attn_implementation="sdpa",
 )
 # Match the learner: packed training disables generation caches. The packing
 # patch does not implement Transformers 5.5's DynamicCache interface.
