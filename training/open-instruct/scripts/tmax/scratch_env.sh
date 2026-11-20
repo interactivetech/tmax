@@ -49,6 +49,9 @@ export MAX_JOBS=4
 export CMAKE_BUILD_PARALLEL_LEVEL=4
 export OMP_NUM_THREADS=4
 export TOKENIZERS_PARALLELISM=false
+# The upstream preprocessing code reads this legacy name rather than Slurm's
+# CPU count. Setting it does not select the Beaker launcher (BEAKER_JOB_ID does).
+export BEAKER_ASSIGNED_CPU_COUNT="${SLURM_CPUS_ON_NODE:-16}"
 export PATH="$TMAX_SCRATCH_ROOT/bin:$UV_PROJECT_ENVIRONMENT/bin:$PATH"
 
 mkdir -p "$UV_CACHE_DIR" "$UV_PYTHON_INSTALL_DIR" "$UV_TOOL_DIR" \
