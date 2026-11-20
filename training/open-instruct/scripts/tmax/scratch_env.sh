@@ -33,6 +33,9 @@ export TMPDIR="$TMAX_SCRATCH_ROOT/tmp"
 export APPTAINER_CACHEDIR="$TMAX_SCRATCH_ROOT/cache/apptainer"
 export APPTAINER_TMPDIR="$TMAX_SCRATCH_ROOT/tmp/apptainer"
 export APPTAINER_CONFIGDIR="$TMAX_SCRATCH_ROOT/config/apptainer"
+# This host uses fakeroot's root-mapped namespace fallback. Instance exec must
+# join through the userns workflow too, rather than the default setuid path.
+export APPTAINER_USERNS=true
 export SWERL_APPTAINER_SIF_DIR="$TMAX_SCRATCH_ROOT/containers/tasks"
 export DATASET_LOCAL_CACHE_DIR="$TMAX_SCRATCH_ROOT/cache/preprocessed"
 export WANDB_DIR="$TMAX_SCRATCH_ROOT/runs/wandb"

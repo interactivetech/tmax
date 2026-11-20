@@ -97,6 +97,12 @@ uv pip check --python "$UV_PROJECT_ENVIRONMENT/bin/python"
    verify Apptainer fakeroot fallback with the backend's actual instance flags.
    Image availability and successful fakeroot execution are prerequisites for RL.
 
+The real instance check on cml38 found that `APPTAINER_USERNS=true` is required:
+without it, `exec instance://...` fails with "joining user namespace with suid
+workflow is not allowed". The scratch environment sets it for both instance
+creation and subsequent exec calls. With it, root-mapped fakeroot, writes to
+`/workspace`, cross-exec state persistence and instance cleanup succeeded.
+
 Steps 3–5 are implemented by the CPU-only preparation helper (run after sourcing
 the environment and changing to `training/open-instruct`):
 
