@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+cd "$script_dir/../.."
+if [[ -n "$(git status --porcelain)" ]]; then
+    echo "Commit changes before launching training." >&2
+    exit 1
+fi
+: "${SLURM_JOB_ID:?Run inside your one-GPU Slurm allocation}"
+source "$script_dir/scratch_env.sh"
+if [[ ! -x "$UV_PROJECT_ENVIRONMENT/bin/python" ]]; then
+    echo "Install the scratch environment first." >&2
+    exit 1
+fi
+if [[ -n "$(nvidia-smi --query-compute-apps=pid --format=csv,noheader,nounits)" ]]; then
+    echo "The GPU has an existing compute workload. Leaving it running; training deferred." >&2
+    exit 1
+fi
+if ! compgen -G "$SWERL_APPTAINER_SIF_DIR/*.sif" >/dev/null; then
+    echo "Prepare task SIF images and validate task execution before training." >&2
+    exit 1
+fi
+export UV_FROZEN=true
+export UV_NO_SYNC=true
+export SANDBOX_BACKEND=apptainer
+export OPEN_INSTRUCT_RAY_RUNTIME_ENV=full
+# Force a separate Ray instance; never connect to or stop an existing workload.
+export RAY_ADDRESS=local
+export RAY_OVERRIDE_RESOURCES="{\"CPU\":${SLURM_CPUS_ON_NODE:-16},\"GPU\":1}"
+export OUTPUT_DIR="$TMAX_SCRATCH_ROOT/runs/qwen35-2b-$(date -u +%Y%m%dT%H%M%SZ)"
+mkdir -p "$OUTPUT_DIR"
+git rev-parse HEAD > "$OUTPUT_DIR/git-commit.txt"
+uv pip freeze --python "$UV_PROJECT_ENVIRONMENT/bin/python" > "$OUTPUT_DIR/packages.txt"
+nvidia-smi > "$OUTPUT_DIR/gpu.txt"
+printf 'job=%s\nnode=%s\nbackend=%s\ndataset=%s\n' \
+    "$SLURM_JOB_ID" "$(hostname)" "$SANDBOX_BACKEND" "${DATASET:-TMaxxx/tmax-13k-v1.1}" \
+    > "$OUTPUT_DIR/run-config.txt"
+bash scripts/tmax/RL/qwen35_2b_1gpu.sh 2>&1 | tee "$OUTPUT_DIR/train.log"

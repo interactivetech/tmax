@@ -36,6 +36,7 @@ export SWERL_SANDBOX_TIMING_LOG_THRESHOLD_S=1.0
 uv run python open_instruct/grpo_fast.py \
     --dataset_mixer_list "$DATASET" 1.0 \
     --dataset_mixer_list_splits train \
+    --dataset_local_cache_dir "${DATASET_LOCAL_CACHE_DIR:-local_dataset_cache}" \
     --max_prompt_token_length 2048 \
     --per_turn_max_tokens 4096 \
     --response_length 8192 \

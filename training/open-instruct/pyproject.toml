@@ -56,6 +56,7 @@ build-backend = "setuptools.build_meta"
 py-modules = ["open_instruct"]
 
 [tool.uv.extra-build-dependencies]
+causal-conv1d = [{ requirement = "torch", match-runtime = true }, "packaging", "wheel"]
 flash-attn = [{ requirement = "torch", match-runtime = true }]
 flash-attn-3 = [{ requirement = "torch", match-runtime = true }]
 
