@@ -121,8 +121,14 @@ retrying; do not upgrade the stack speculatively.
 From the repository root, inside the existing one-GPU Slurm allocation:
 
 ```bash
+bash training/open-instruct/scripts/tmax/check_scratch_2b_gpu.sh
 bash training/open-instruct/scripts/tmax/launch_scratch_2b.sh
 ```
+
+The GPU checker compares causal convolution and Flash Attention 4 against Torch
+references, tests attention and model backward passes, then runs vLLM generation
+in a separate process. Its log is `logs/gpu-preflight.log`; installation invalidates
+the success marker, and the launcher requires a fresh successful preflight.
 
 The local launcher intentionally uses this Slurm allocation directly. The
 repository's generic `build_image_and_launch.sh` builds Docker images and submits

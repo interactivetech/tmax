@@ -7,6 +7,7 @@ if [[ -n "$(git status --porcelain)" ]]; then
     exit 1
 fi
 source "$script_dir/scratch_env.sh"
+rm -f "$TMAX_SCRATCH_ROOT/logs/gpu-preflight.passed"
 log="$TMAX_SCRATCH_ROOT/logs/install-$(date -u +%Y%m%dT%H%M%SZ).log"
 exec > >(tee -a "$log") 2>&1
 echo "Installing commit $(git rev-parse HEAD) on $(hostname); log: $log"

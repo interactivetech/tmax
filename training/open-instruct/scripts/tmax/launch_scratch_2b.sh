@@ -32,6 +32,10 @@ if os.environ.get("DATASET", "TMaxxx/tmax-13k-v1.1") != json.loads(path.read_tex
     raise SystemExit("Dataset changed since task preparation; rerun prepare_scratch_2b.py.")
 PY
 export UV_FROZEN=true
+if [[ ! -f "$TMAX_SCRATCH_ROOT/logs/gpu-preflight.passed" ]]; then
+    echo "Run check_scratch_2b_gpu.sh and pass GPU validation before training." >&2
+    exit 1
+fi
 export UV_NO_SYNC=true
 export SANDBOX_BACKEND=apptainer
 export OPEN_INSTRUCT_RAY_RUNTIME_ENV=full
