@@ -11,6 +11,10 @@ or a remote sandbox backend:
 bash scripts/tmax/RL/qwen35_2b_1gpu.sh
 ```
 
+For the cml38 one-B300 Slurm attempt with dependencies, models and caches on
+`/scratch1/mendeza/tmax`, follow the [scratch installation and validation plan](../../../../docs/qwen35-2b-b300-scratch-plan.md).
+It includes committed installer, task preparation, GPU preflight and local launch scripts.
+
 It uses the Tmax task dataset, synchronous collection (`ASYNC_STEPS=0`), and
 24 episodes in groups of eight for three learner steps. Full RL recipes retain
 asynchronous collection (`ASYNC_STEPS=4`). All RL recipes explicitly set

@@ -160,3 +160,46 @@ per prompt and 16 environment actors. Do not automatically switch to full recipe
 - Record the Git commit, package versions, Slurm/GPU configuration and task image
   manifest. Report installation, CPU tests, container checks and GPU training
   separately so deferred GPU work is never presented as passed.
+
+## Implementation results (2026-11-20)
+
+- Initial setup committed as `0220f77d` before installing uv, Python or project
+  dependencies. Work is on `attempt/qwen35-2b-b300-scratch` and pushed to origin.
+- Installed uv 0.13.9, Python 3.12.16 and 298 project/development packages under
+  scratch. causal-conv1d 1.6.1 compiled successfully with CUDA 12.8.1. Runtime
+  imports of Torch, vLLM, Transformers, DeepSpeed, Ray and Flash Attention 4 passed.
+- Corrected the inherited Transformers/vLLM conflict in committed change
+  `af24163f` before re-syncing. Only Transformers changed package version
+  (5.4.0 to 5.5.1); uv also normalized lockfile metadata to its newer format.
+  `uv pip check` now reports all 298 installed packages are compatible.
+- Final stack: Torch 2.10.0+cu128, vLLM 0.19.1, Transformers 5.5.1,
+  causal-conv1d 1.6.1, Flash Attention 4 4.0.0b5.
+- Focused CPU checks: **45 tests and 12 subtests passed**, covering Apptainer,
+  image resolution, Ray environment propagation, Qwen3.5 packing and reward validity.
+  Ruff lint passed. The new Python helper passes formatting; a broader format
+  check flags six pre-existing files that this attempt did not change.
+- Downloaded the model and dataset to scratch. Prepared the exact three selected
+  task images and passed reset, shell, real verifier submission and cleanup for
+  `task_007720_cd9254ce`, `task_001784_79d48dac`, and `task_001139_db9764d1`.
+  No-op submissions produced valid zero rewards, with no infrastructure failures.
+- Scratch footprint is approximately 23 GB including environments, build caches,
+  model/data and container images. Home free space remained approximately 3 GB.
+  Scratch1 is node-local on cml38; these files need to be prepared again or copied
+  if a later allocation lands on another node.
+- GPU kernels, GPU model execution and RL training are **deferred**, because the
+  existing vLLM PID 270556 still occupies the allocated GPU. The busy-GPU guard
+  was tested successfully. No existing workload was stopped.
+
+Local evidence lives under `/scratch1/mendeza/tmax/logs/`:
+`install-20261120T184518Z.log`, `packages.txt`, `cpu-tests.txt`,
+`prepare-debug-tasks.log`, and `debug-task-manifest.json` (including SIF checksums).
+
+Once the B300 is idle, run these commands from the repository root:
+
+```bash
+bash training/open-instruct/scripts/tmax/check_scratch_2b_gpu.sh
+bash training/open-instruct/scripts/tmax/launch_scratch_2b.sh
+```
+
+The first command must pass before the second launches training. GPU compatibility
+and completed training are not claimed by the installation/CPU results above.
