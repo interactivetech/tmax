@@ -43,6 +43,8 @@ export ATTN_IMPLEMENTATION=torch
 # Avoid FlashInfer's SM103a JIT compilation with the CUDA 12.8 toolkit.
 export VLLM_ATTENTION_BACKEND=TRITON_ATTN
 export OPEN_INSTRUCT_RAY_RUNTIME_ENV=full
+# Keep every instance-start record so cleanup can identify this run's containers.
+export RAY_DEDUP_LOGS=0
 # Force a separate Ray instance; never connect to or stop an existing workload.
 export RAY_ADDRESS=local
 export RAY_OVERRIDE_RESOURCES="{\"CPU\":${SLURM_CPUS_ON_NODE:-16},\"GPU\":1}"
@@ -54,4 +56,12 @@ nvidia-smi > "$OUTPUT_DIR/gpu.txt"
 printf 'job=%s\nnode=%s\nbackend=%s\ndataset=%s\n' \
     "$SLURM_JOB_ID" "$(hostname)" "$SANDBOX_BACKEND" "${DATASET:-TMaxxx/tmax-13k-v1.1}" \
     > "$OUTPUT_DIR/run-config.txt"
+cleanup_run_sandboxes() {
+    local training_status=$?
+    trap - EXIT
+    "$UV_PROJECT_ENVIRONMENT/bin/python" scripts/tmax/cleanup_scratch_instances.py "$OUTPUT_DIR/train.log" \
+        > "$OUTPUT_DIR/cleanup.log" 2>&1 || echo "Sandbox cleanup failed; see $OUTPUT_DIR/cleanup.log" >&2
+    exit "$training_status"
+}
+trap cleanup_run_sandboxes EXIT
 bash scripts/tmax/RL/qwen35_2b_1gpu.sh 2>&1 | tee "$OUTPUT_DIR/train.log"

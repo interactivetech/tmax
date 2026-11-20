@@ -259,3 +259,12 @@ This validates execution and saving, **not useful learning**: all 24 rollout rew
 were zero, and policy losses and gradient norms were finite but zero. Finish reasons
 were 12 `length` and 12 `stop`. Rollout quality and reward acquisition need inspection
 before interpreting this run as evidence of training progress.
+
+Ray shutdown left 16 Apptainer instances behind. All were stopped using exact
+instance-start records from this run (the raw Ray worker logs supplied records
+hidden by console log deduplication). The local launcher now disables Ray log
+deduplication and runs `cleanup_scratch_instances.py` on exit. Cleanup matches only
+instance names recorded in its own training log and preserves the training exit
+status. Three focused cleanup tests passed, including leaving another run's
+instance untouched. After cleanup there were no remaining task instances or GPU
+processes from this run; `cleanup.log` and `sandbox-starts.log` retain the evidence.
