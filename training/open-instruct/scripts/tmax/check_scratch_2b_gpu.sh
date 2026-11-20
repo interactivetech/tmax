@@ -53,8 +53,14 @@ model = AutoModelForCausalLM.from_pretrained(
     "hamishivi/Qwen3.5-2B", local_files_only=True, dtype=torch.bfloat16,
     device_map={"": 0}, attn_implementation=model_utils.detect_hf_attn_implementation(),
 )
+# Match the learner: packed training disables generation caches. The packing
+# patch does not implement Transformers 5.5's DynamicCache interface.
+model.config.use_cache = False
+model.train()
 inputs = tokenizer("A short training smoke test.", return_tensors="pt").to("cuda")
-loss = model(**inputs, labels=inputs["input_ids"]).loss
+outputs = model(**inputs, labels=inputs["input_ids"], use_cache=False)
+assert outputs.past_key_values is None
+loss = outputs.loss
 assert torch.isfinite(loss)
 loss.backward()
 torch.cuda.synchronize()
