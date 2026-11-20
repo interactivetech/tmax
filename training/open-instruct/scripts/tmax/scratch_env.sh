@@ -42,7 +42,8 @@ export WANDB_DIR="$TMAX_SCRATCH_ROOT/runs/wandb"
 export WANDB_CACHE_DIR="$TMAX_SCRATCH_ROOT/cache/wandb"
 export WANDB_CONFIG_DIR="$TMAX_SCRATCH_ROOT/config/wandb"
 export WANDB_DATA_DIR="$TMAX_SCRATCH_ROOT/data/wandb"
-export WANDB_MODE=offline
+# Keep scratch runs offline by default, but allow an explicit online override.
+export WANDB_MODE="${WANDB_MODE:-offline}"
 export RAY_TMPDIR="$TMAX_SCRATCH_ROOT/ray/${SLURM_JOB_ID:-local}"
 export XDG_RUNTIME_DIR="$TMAX_SCRATCH_ROOT/runtime/${SLURM_JOB_ID:-local}"
 export MAX_JOBS=4
