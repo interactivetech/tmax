@@ -227,3 +227,35 @@ Torch/causal convolution/FA4 micro-kernel checks, SDPA model forward and backwar
 (finite loss 7.0571), and 16-token vLLM generation using Triton attention. The
 checker created `logs/gpu-preflight.passed` and its engine shut down normally.
 The next manual step is `launch_scratch_2b.sh`; RL training itself has not yet run.
+
+## Completed end-to-end debug run (2026-11-20)
+
+The first training launch exposed two additional startup checks, both fixed and
+committed before retrying:
+
+- `fb84f1c8`: skip authenticated W&B team discovery in offline/dryrun/disabled
+  modes, preserving online team lookup and caching. Regression tests cover offline
+  operation without login/API calls and switching back to online mode.
+- `924856b5`: recognize `NVIDIA B300 SXM6 AC` in the utilization-metrics registry.
+  The theoretical dense BF16 and bandwidth values use NVIDIA's
+  [Blackwell Ultra datasheet](https://resources.nvidia.com/en-us-blackwell-architecture/blackwell-ultra-datasheet).
+  GPU-name/specification regression tests pass. These entries are used for metrics;
+  actual allocations continue to use the device's reported memory.
+
+Ruff lint and **15 focused utility tests plus four subtests passed** for these fixes.
+
+The retry using commit `924856b5` **finished all three learner steps and exited 0**
+in job 8489821. It processed 24 rollouts, eight per step, and saved a complete final
+model before shutting down Ray. Final save completed at approximately 14:32 EST.
+
+- Run directory: `/scratch1/mendeza/tmax/runs/qwen35-2b-20261120T192047Z/`
+- Final model: `qwen35_2b_dppo_1gpu__42__1795202464/` beneath that directory.
+- Verified `.checkpoint_complete`, model/tokenizer configuration and tokenizer files,
+  plus a readable `model.safetensors` containing 320 tensor entries (3,763,692,048 bytes).
+- `train.log`, rollout JSONL, package versions, Git commit and offline W&B data are
+  retained on scratch. The GPU returned to 0 MiB after cleanup.
+
+This validates execution and saving, **not useful learning**: all 24 rollout rewards
+were zero, and policy losses and gradient norms were finite but zero. Finish reasons
+were 12 `length` and 12 `stop`. Rollout quality and reward acquisition need inspection
+before interpreting this run as evidence of training progress.
