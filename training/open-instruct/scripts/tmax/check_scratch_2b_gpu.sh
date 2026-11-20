@@ -67,17 +67,6 @@ torch.cuda.synchronize()
 print("Model load, forward and backward passed; loss:", loss.item())
 PY
 VLLM_ALLOW_INSECURE_SERIALIZATION=1 VLLM_DISABLE_COMPILE_CACHE=1 \
-uv run --frozen --no-sync python - <<'PY'
-from vllm import LLM, SamplingParams
-
-llm = LLM(
-    model="hamishivi/Qwen3.5-2B", tensor_parallel_size=1, max_model_len=10240,
-    gpu_memory_utilization=0.3, enforce_eager=True, seed=42,
-    gdn_prefill_backend="triton", language_model_only=True, enable_prefix_caching=True,
-)
-outputs = llm.generate(["Hello"], SamplingParams(max_tokens=16, temperature=0))
-assert outputs[0].outputs[0].token_ids
-print("vLLM generation passed:", outputs[0].outputs[0].text)
-PY
+uv run --frozen --no-sync python scripts/tmax/check_scratch_2b_vllm.py
 date -u +%Y-%m-%dT%H:%M:%SZ > "$marker"
 echo "GPU preflight passed. Run launch_scratch_2b.sh next."
