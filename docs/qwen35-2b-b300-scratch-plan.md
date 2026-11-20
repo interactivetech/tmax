@@ -216,3 +216,8 @@ on the B300. The first model test revealed two test/configuration issues:
   Qwen3.5's head dimension 256 on Blackwell, although its smaller kernel check
   passes. The local wrapper sets `ATTN_IMPLEMENTATION=torch`, which the trainer
   maps to Hugging Face `sdpa`; other invocations retain their existing default.
+- Run the vLLM check from a guarded Python file so multiprocessing `spawn` can
+  restart it. Standard-input scripts are not valid spawn entry points.
+- Select `TRITON_ATTN` for vLLM in both the checker and local launcher. The
+  default FlashInfer backend's decode JIT requests `compute_103a`, which the
+  installed CUDA 12.8 compiler rejects. Gated DeltaNet prefill remains Triton.

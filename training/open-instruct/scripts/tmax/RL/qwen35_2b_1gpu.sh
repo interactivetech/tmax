@@ -14,6 +14,9 @@ attention_args=()
 if [[ -n "${ATTN_IMPLEMENTATION:-}" ]]; then
     attention_args=(--attn_implementation "$ATTN_IMPLEMENTATION")
 fi
+if [[ -n "${VLLM_ATTENTION_BACKEND:-}" ]]; then
+    attention_args+=(--vllm_attention_backend "$VLLM_ATTENTION_BACKEND")
+fi
 # TOOL_CONFIGS can override the complete environment config, including local task data.
 if [ -z "${TOOL_CONFIGS:-}" ]; then
     TOOL_CONFIGS="$(uv run python - "$DATASET" "$SANDBOX_BACKEND" <<'PYCONFIG'

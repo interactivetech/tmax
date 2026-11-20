@@ -14,6 +14,8 @@ def main() -> None:
         gdn_prefill_backend="triton",
         language_model_only=True,
         enable_prefix_caching=True,
+        # FlashInfer's SM103a JIT path needs a newer nvcc than CUDA 12.8.
+        attention_config={"backend": "TRITON_ATTN"},
     )
     outputs = llm.generate(["Hello"], SamplingParams(max_tokens=16, temperature=0))
     assert outputs[0].outputs[0].token_ids
